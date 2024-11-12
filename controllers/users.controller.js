@@ -1,4 +1,4 @@
-import { getAll, getById, deleteById } from '../services/users.service.js'
+import { getAll, getById, deleteById, create } from '../services/users.service.js'
 
 // A method on a controller will have at first parameter the current request and the second parameter the response object
 // The response object will be used to send the response back to the client
@@ -11,20 +11,20 @@ import { getAll, getById, deleteById } from '../services/users.service.js'
 // Be careful to not forget to export the functions, otherwise the router won't be able to call them
 // You can't import a function having the same name as an exported function, use aliases, import the whole module or rename the functions
 
-export const getUsers = (req, res) => {
+export const getUsers = async (req, res) => {
     // Calling the service function with the sortBy and sortDir parameters from the query string
     // The query string is an object containing all the parameters sent in the URL after the ? character
     // These values can be null or undefined if not provided
-    const data = getAll(req.query.sortBy, req.query.sortDir)
+    const data = await getAll(req.query.sortBy, req.query.sortDir)
     res.json({
         success: true,
         data
     })
 }
 
-export const getUserById = (req, res) => {
+export const getUserById = async (req, res) => {
     // Calling the service function with the id parsed as an integer, the id is a path parameter from the URL, it's a string, declared in the router
-    const user = getById(parseInt(req.params.id))
+    const user = await getById(parseInt(req.params.id))
 
     // If the user is not found, we will return a 404 status code
     if (!user) {
@@ -35,11 +35,14 @@ export const getUserById = (req, res) => {
     }
 
     // Otherwise we will return the user object
-    return res.json(user)
+    return res.json({
+        success: true,
+        data: user
+    })
 }
 
-export const deleteUserById = (req, res) => {
-    const hasBeenDeleted = deleteById(parseInt(req.params.id))
+export const deleteUserById = async (req, res) => {
+    const hasBeenDeleted = await deleteById(parseInt(req.params.id))
     if (!hasBeenDeleted) {
         return res.status(404).json({
             success: false,
@@ -50,5 +53,19 @@ export const deleteUserById = (req, res) => {
     return res.json({
         success: true,
         message: 'User deleted'
+    })
+}
+
+export const createUser = async (req, res) => {
+    // We will get the username and password from the request body
+    const { username, password } = req.body
+
+    // We will call the service function with the username and password
+    const user = await create(username, password)
+
+    // We will return the created user
+    res.json({
+        success: true,
+        data: user
     })
 }

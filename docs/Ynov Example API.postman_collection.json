@@ -43,6 +43,35 @@
 					"response": []
 				},
 				{
+					"name": "Create user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"demo\",\n    \"password\": \"example\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/users",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"users"
+							]
+						},
+						"description": "The endpoint retrieves a list of users.\n\n### Request\n\nWe can sort the users by any column by providing the optional `sortBy` query parameter and set any column from `[id, name, age]`  \nIt can be combined with the optional `sortDir` query paremeter to precise the order. Valid values are `[ASC, DESC]` default value is ASC.\n\n### Response\n\nThe response is in JSON format with the following schema:\n\n``` json\n{\n    \"success\": {boolean},\n    \"data\": [\n        {\n            \"id\": {number},\n            \"name\": \"{string}\",\n            \"age\": {number}\n        }\n    ]\n}\n\n ```"
+					},
+					"response": []
+				},
+				{
 					"name": "User by id",
 					"request": {
 						"method": "GET",
@@ -69,7 +98,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/users/2",
+							"raw": "http://localhost:3000/users/1",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -77,7 +106,7 @@
 							"port": "3000",
 							"path": [
 								"users",
-								"2"
+								"1"
 							]
 						},
 						"description": "The endpoint delete a single user by its id. Returns 200 with json or 404 when user not found.\n\n### Response\n\nThe response is in JSON format with the following schema:\n\n**200**\n\n``` json\n{\n    \"success\": true,\n    \"message\": \"User deleted\"\n}\n\n ```\n\n**404**\n\n``` json\n{\n    \"success\": false,\n    \"message\": \"User not found\"\n}\n\n ```"
