@@ -1,4 +1,6 @@
 import prisma from '../db.js'
+import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
 
 /**
  * Returns all users, sorted by the provided field and direction
@@ -13,7 +15,7 @@ export const getAll = async (sortBy, sortDirection) => {
             id: true,
             username: true
         }
-    };
+    }
     if (sortBy) {
         if (!sortDirection) sortDirection = 'asc'
         options.orderBy = {
@@ -60,10 +62,20 @@ export const deleteById = async (id) => {
 }
 
 export const create = async (username, password) => {
+
+    const count = await prisma.user.count({
+        where: {
+            username
+        }
+    })
+    if (count > 0) throw new Error('Username already exists')
+
+    const encryptedPassword = bcrypt.hashSync(password, parseInt(process.env.BCRYPT_SALT_ROUNDS))
+
     const user = await prisma.user.create({
         data: {
             username,
-            password
+            password: encryptedPassword
         },
         select: {
             id: true,
@@ -72,4 +84,26 @@ export const create = async (username, password) => {
     })
 
     return user
+}
+
+export const login = async (username, password) => {
+    const user = await prisma.user.findFirst({
+        where: {
+            username
+        }
+    })
+
+    if (!user) throw new Error('User not found')
+
+    if (!bcrypt.compareSync(password, user.password)) throw new Error('Invalid password')
+
+    // Generate a token here
+    const token = jwt.sign({
+        id: user.id,
+        username: user.username
+    }, process.env.JWT_SECRET, {
+        expiresIn: '1h'
+    })
+
+    return token
 }

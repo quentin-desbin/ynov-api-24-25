@@ -4,8 +4,8 @@ import usersRouter from './routers/users.router.js'
 import * as OpenApiValidator from 'express-openapi-validator'
 
 // Import path module to get the current directory (node < 20.11.X)
-import * as url from 'url';
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+import * as url from 'url'
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url))
 
 // Initialize express
 const app = express()

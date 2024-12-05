@@ -28,8 +28,8 @@ paths:
         '200':
           description: A list of users
     post:
-      operationId: createUser
-      summary: "Create a new user"
+      operationId: registerUser
+      summary: "Register a new user"
       requestBody:
         required: true
         content:

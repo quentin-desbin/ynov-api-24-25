@@ -1,3 +1,4 @@
 node_modules
 prisma/*.db
 package-lock.json
+.env
