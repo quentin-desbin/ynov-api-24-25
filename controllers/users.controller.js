@@ -1,4 +1,4 @@
-import { getAll, getById, deleteById, create } from '../services/users.service.js'
+import { getAll, getById, deleteById, create, login } from '../services/users.service.js'
 
 // A method on a controller will have at first parameter the current request and the second parameter the response object
 // The response object will be used to send the response back to the client
@@ -56,16 +56,39 @@ export const deleteUserById = async (req, res) => {
     })
 }
 
-export const createUser = async (req, res) => {
+export const registerUser = async (req, res, next) => {
     // We will get the username and password from the request body
     const { username, password } = req.body
+    let user
 
     // We will call the service function with the username and password
-    const user = await create(username, password)
+    try {
+        user = await create(username, password)
+    } catch (err) {
+        return next(err)
+    }
 
     // We will return the created user
     res.json({
         success: true,
         data: user
+    })
+}
+
+export const loginUser = async (req, res, next) => {
+    const { username, password } = req.body
+    let token
+
+    try {
+        token = await login(username, password)
+    } catch (err) {
+        return next(err)
+    }
+
+    // We will return a success message if the login was successful and the token
+    res.json({
+        success: true,
+        message: 'Login successful',
+        token: token
     })
 }
