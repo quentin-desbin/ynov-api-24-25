@@ -54,6 +54,6 @@ jobs:
               workflow_id: 'frontend.yml',
               ref: 'devops',
               inputs: {
-                VITE_API_URL: ${{ steps.extract-domain.outputs.domain-name }}
+                VITE_API_URL: '${{ steps.extract-domain.outputs.domain-name }}'
               }
             })
