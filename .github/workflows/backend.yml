@@ -1,4 +1,4 @@
-name: Build backend
+name: Backend
 
 on:
   push:
@@ -47,7 +47,6 @@ jobs:
       - name: Trigger frontend
         uses: actions/github-script@v7.0.1
         with:
-          github-token: ${{ secrets.PAT }}
           script: |
             github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
