@@ -8,6 +8,11 @@ jobs:
   build:
     name: Build API
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./back
+    outputs:
+      image-tag: ${{ steps.tag.outputs.image-tag }}
     steps:
       - uses: actions/checkout@v4
       - run: cd back
@@ -16,7 +21,10 @@ jobs:
       - name: Login to Docker private registry
         run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login ${{ secrets.DOCKER_HOST }} -u nologin --password-stdin
       - name: Tag the Docker image
-        run: docker tag shop-api:latest ${{ secrets.DOCKER_HOST }}/shop-api:latest
+        id: tag
+        run: |
+          docker tag shop-api:latest ${{ secrets.DOCKER_HOST }}/shop-api:latest
+          echo "::set-output name=image-tag::${{ secrets.DOCKER_HOST }}/shop-api:latest"
       - name: Publish the Docker image
         run: docker push ${{ secrets.DOCKER_HOST }}/shop-api:latest
   deploy:
