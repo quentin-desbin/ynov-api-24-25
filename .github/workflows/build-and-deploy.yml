@@ -15,7 +15,6 @@ jobs:
       image-tag: ${{ steps.tag.outputs.image-tag }}
     steps:
       - uses: actions/checkout@v4
-      - run: cd back
       - name: Build the Docker image
         run: docker build -t shop-api:latest --platform=linux/amd64 .
       - name: Login to Docker private registry
