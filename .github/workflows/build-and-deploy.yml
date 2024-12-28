@@ -1,0 +1,35 @@
+name: Build and deploy
+
+on:
+  push:
+    branches: [ "devops" ]
+
+jobs:
+  build back-end:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cd back
+      - name: Build the Docker image
+        run: docker build -t shop-api:latest --platform=linux/amd64 .
+      - name: Login to Docker private registry
+        run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login ${{ secrets.DOCKER_HOST }} -u nologin --password-stdin
+      - name: Tag the Docker image
+        run: docker tag shop-api:latest ${{ secrets.DOCKER_HOST }}/shop-api:latest
+      - name: Publish the Docker image
+        run: docker push ${{ secrets.DOCKER_HOST }}/shop-api:latest
+  deploy back-end:
+    needs: build back-end
+    runs-on: ubuntu-latest
+    steps:
+      - name: Use CLI
+        uses: scaleway/action-scw@v0
+        with:
+          save-config: true
+          export-config: true
+          access-key: ${{ secrets.DOCKER_USERNAME }}
+          secret-key: ${{ secrets.DOCKER_PASSWORD }}
+          default-project-id: 72e49469-ee5f-4f2f-b2b5-9c17b99d0f28
+          default-organization-id: 909c2e48-12fc-47bf-b8ef-360a60b07500
+      - name: Deploy the Docker image
+        run: scw container container create name=shop-api namespace-id=8eb839dd-63bc-4152-9587-5c743c117e07 registry-image=${{ secrets.DOCKER_HOST }}/shop-api:latest port=3000 max-scale=1 cpu-limit=100 memory-limit=128
