@@ -1,31 +1,32 @@
 name: Build and deploy
 
 on:
-  push:
-    branches: [ "devops" ]
+  workflow_dispatch:
+    inputs:
+      VITE_API_URL:
+        description: 'API URL for the frontend'
+        required: true
 
 jobs:
   build:
-    name: Build API
+    name: Build APP
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./back
-    outputs:
-      image-tag: ${{ steps.tag.outputs.image-tag }}
+        working-directory: ./front
     steps:
       - uses: actions/checkout@v4
       - name: Build the Docker image
-        run: docker build -t shop-api:latest --platform=linux/amd64 .
+        run: docker build -t shop-app:latest --platform=linux/amd64 --build-arg VITE_API_URL=${{ github.event.inputs.VITE_API_URL }} .
       - name: Login to Docker private registry
         run: echo ${{ secrets.DOCKER_PASSWORD }} | docker login ${{ secrets.DOCKER_HOST }} -u nologin --password-stdin
       - name: Tag the Docker image
         id: tag
-        run: docker tag shop-api:latest ${{ secrets.DOCKER_HOST }}/shop-api:latest
+        run: docker tag shop-app:latest ${{ secrets.DOCKER_HOST }}/shop-app:latest
       - name: Publish the Docker image
-        run: docker push ${{ secrets.DOCKER_HOST }}/shop-api:latest
+        run: docker push ${{ secrets.DOCKER_HOST }}/shop-app:latest
   deploy:
-    name: Deploy API
+    name: Deploy APP
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -40,6 +41,9 @@ jobs:
           default-organization-id: 909c2e48-12fc-47bf-b8ef-360a60b07500
       - name: Deploy the Docker image
         id: serverless
-        run: scw container container create name=shop-api namespace-id=8eb839dd-63bc-4152-9587-5c743c117e07 registry-image=${{ secrets.DOCKER_HOST }}/shop-api:latest port=3000 max-scale=1 cpu-limit=100 memory-limit=128
-      - name: Get the result from json
-        run: echo ${{ steps.serverless.outputs.json }}
+        run: scw container container create name=shop-app namespace-id=8eb839dd-63bc-4152-9587-5c743c117e07 registry-image=${{ secrets.DOCKER_HOST }}/shop-app:latest port=80 max-scale=1 cpu-limit=100 memory-limit=128 | tee result.txt
+      - name: Extract DomainName
+        id: extract-domain
+        run: |
+          DOMAIN_NAME=$(grep 'DomainName' result.txt | awk '{print $2}')
+          echo $DOMAIN_NAME
