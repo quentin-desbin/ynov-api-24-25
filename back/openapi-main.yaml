@@ -1,0 +1,410 @@
+openapi: 3.0.0
+servers:
+  - url: 'http://localhost:3000'
+info:
+  title: Shop API
+  version: "1"
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    BasicResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          default: true
+        data:
+          type: object
+    
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        username:
+          type: string
+        isAdmin:
+          type: boolean
+          default: false
+
+    Item:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        price:
+          type: number
+          format: float
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        state:
+          type: string
+          enum: [PENDING, PAID, CANCELLED, DELIVERED]
+        amountPayed:
+          type: number
+          format: float
+        createdAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              amount:
+                type: integer
+              item:
+                $ref: '#/components/schemas/Item'
+
+paths:
+  /users/login:
+    post:
+      security: []
+      operationId: loginUser
+      summary: "Login user"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: "Login successful"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  token:
+                    type: string
+
+  /users/register:
+    post:
+      security: []
+      operationId: registerUser
+      summary: "Register a new user"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+      responses:
+        '200':
+          description: "User created"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasicResponse'
+
+  /users/me:
+    get:
+      operationId: getMe
+      summary: "Get current user"
+      responses:
+        '200':
+          description: "Current user"
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BasicResponse'
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/User'
+
+  /users:
+    get:
+      operationId: listUsers
+      summary: "List all users"
+      description: "List all users in the system, only for admin users"
+      responses:
+        '200':
+          description: "A list of users"
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BasicResponse'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/User'
+
+  /users/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    put:
+      operationId: updateUser
+      summary: "Update user"
+      description: "Update user details, only for admin users"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                isAdmin:
+                  type: boolean
+      responses:
+        '200':
+          description: "User updated"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasicResponse'
+    delete:
+      operationId: deleteUser
+      summary: "Delete user"
+      description: "Delete user, only for admin users"
+      responses:
+        '200':
+          description: "User deleted"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasicResponse'
+
+  /items:
+    get:
+      security: []
+      operationId: listItems
+      summary: "List all items"
+      responses:
+        '200':
+          description: "A list of items"
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BasicResponse'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Item'
+    post:
+      operationId: createItem
+      summary: "Create new item"
+      description: "Create a new item, only for admin users"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, price]
+              properties:
+                name:
+                  type: string
+                price:
+                  type: number
+                  format: float
+      responses:
+        '200':
+          description: "Item created"
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BasicResponse'
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/Item'
+
+  /items/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    patch:
+      operationId: updateItem
+      summary: "Update item"
+      description: "Update item details, only for admin users"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                price:
+                  type: number
+                  format: float
+      responses:
+        '200':
+          description: "Item updated"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasicResponse'
+    delete:
+      operationId: deleteItem
+      summary: "Delete item"
+      description: "Delete item, only for admin users"
+      responses:
+        '200':
+          description: "Item deleted"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BasicResponse'
+
+  /orders:
+    get:
+      operationId: listOrders
+      summary: "List all orders"
+      description: "List all orders, only for admin users"
+      responses:
+        '200':
+          description: "A list of orders"
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BasicResponse'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Order'
+    post:
+      operationId: createOrder
+      summary: "Create new order"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  items:
+                    type: object
+                    required: [itemId, amount]
+                    properties:
+                      itemId:
+                        type: integer
+                      amount:
+                        type: integer
+      responses:
+        '200':
+          description: "Order created"
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BasicResponse'
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/Order'
+
+  /orders/my:
+    get:
+      operationId: listMyOrders
+      summary: "List current user's orders"
+      responses:
+        '200':
+          description: "A list of user's orders"
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BasicResponse'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Order'
+
+  /orders/{id}/state:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    patch:
+      operationId: updateOrderState
+      summary: "Update order state"
+      description: "Update order state, only for admin users"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [state]
+              properties:
+                state:
+                  type: string
+                  enum: [PENDING, PAID, CANCELLED, DELIVERED]
+      responses:
+        '200':
+          description: "Order state updated"
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/BasicResponse'
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/Order'

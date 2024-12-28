@@ -105,7 +105,7 @@ export default (req, res, next) => {
 
 ```javascript
 // At top of the file
-import authMiddleware from '../middlewares/auth.js'
+import authMiddleware from '../back/middlewares/auth.js'
 
 // On a route that will match GET /users, will call getUsers method only if nothing returned by the middleware
 router.get('/', authMiddleware, getUsers)
